@@ -1,0 +1,24 @@
+* Nyxt-RBW
+This extension provides a RBW integration with Nyxt by providing an implementation for Nyxt's =password-interface=.
+
+** Configuration
+To use this extension, add this repository to =~/.local/share/nyxt/extensions/nx-rbw/= and this snippet to your Nyxt =config.lisp= file:
+
+#+begin_src lisp
+(define-nyxt-user-system-and-load "nyxt-user/rbw"
+		:depends-on ("nx-rbw"))
+
+(define-configuration :password-mode
+		((pasword-interface (make-instance 'nx-rbw:rbw-interface))))
+#+end_src
+
+Nyxt doesn't handle any initial configuration of RBW, so this must be done via command line.  At a minimum, running ~rbw login~ in a terminal must run successfully and pinentry program must be set to something that will bypass Nyxt (e.g. =pinentry-gtk= or the GNOME equivalent) before this extension can be used:
+
+#+begin_src bash
+rbw config set pinentry pinentry-gtk
+#+end_src
+
+** Issues
+Sometimes RBW forgets how to use the configured pinentry program and the config value needs to be set again.  This can be frustrating, so eventually it would be good to provide a slot for master-password, set =pinentry= to =pinentry-tty= in RBW, and have Nyxt send the password to an RBW process.  I tried implementing this, but I could not figure out how to get the =execute= function to take the input properly.
+
+In a perfect world, Nyxt would prompt the user for the master password, and would pass /that/ to the RBW process. However, the functions Nyxt exposes for interacting with the password interface take over the prompt before the interface starts its work, preventing the interface from prompting the user for anything until after a password is selected.  Advice can be added to the functions that Nyxt exposes to check RBW's status before running the functions, but that is outside the scope of an extension like this, and I'm not sure how to do it.
